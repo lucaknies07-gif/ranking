@@ -38,6 +38,7 @@
             align-items: center;
             padding: 16px;
             overflow-x: hidden;
+            position: relative;
         }
 
         .game-wrapper {
@@ -48,7 +49,49 @@
             border-radius: 24px;
             padding: 24px;
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), 0 0 30px rgba(157, 0, 255, 0.1);
+            position: relative;
         }
+
+        /* Info Button & Modal */
+        .info-trigger {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid #2d2d44;
+            color: var(--accent-neon);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+        
+        .info-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(5, 5, 10, 0.95);
+            z-index: 100;
+            padding: 24px;
+            overflow-y: auto;
+        }
+        .info-modal.active { display: block; animation: fadeIn 0.2s ease; }
+        .info-content {
+            max-width: 450px;
+            margin: 40px auto;
+            text-align: left;
+        }
+        .info-content h3 { color: var(--accent-neon); margin-top: 20px; margin-bottom: 10px; font-size: 18px; text-transform: uppercase; letter-spacing: 1px;}
+        .info-content p, .info-content li { color: var(--text-muted); font-size: 14px; line-height: 1.6; margin-bottom: 10px; }
+        .info-content ul { padding-left: 20px; }
 
         /* Screens */
         .screen { display: none; text-align: center; }
@@ -60,7 +103,7 @@
         }
 
         /* Logo & Header */
-        .logo-area { margin-bottom: 25px; }
+        .logo-area { margin-bottom: 25px; padding-right: 30px; }
         .logo-title {
             font-size: 38px;
             font-weight: 900;
@@ -82,10 +125,7 @@
             overflow-y: auto;
             padding-right: 4px;
         }
-        .player-row {
-            display: flex;
-            gap: 10px;
-        }
+        .player-row { display: flex; gap: 10px; }
         input[type="text"] {
             width: 100%;
             background: #181826;
@@ -170,10 +210,7 @@
             border-radius: 12px;
             overflow: hidden;
         }
-        .leaderboard-table th, .leaderboard-table td {
-            padding: 12px 16px;
-            text-align: left;
-        }
+        .leaderboard-table th, .leaderboard-table td { padding: 12px 16px; text-align: left; }
         .leaderboard-table th { background: #1c1c30; color: var(--accent-neon); font-size: 12px; text-transform: uppercase; }
         .leaderboard-table tr { border-bottom: 1px solid #1f1f35; }
         .leaderboard-table tr:last-child { border-bottom: none; }
@@ -182,7 +219,37 @@
 </head>
 <body>
 
+<div id="info-modal" class="info-modal">
+    <div class="info-content">
+        <div class="logo-area" style="text-align: center;">
+            <h2 class="logo-title" style="font-size: 28px;">Info & Regeln</h2>
+        </div>
+        
+        <h3>Spieleanleitung</h3>
+        <p><strong>Priorities</strong> ist das Partyspiel der ehrlichen Meinungen und absurden Vergleiche. So wird gespielt:</p>
+        <ul>
+            <li><strong>Schritt 1:</strong> Ein Spieler (der Befragte) bekommt heimlich das Handy. Er sortiert 5 zufällige Begriffe per Drag & Drop nach seinen persönlichen Vorlieben (1 = Top, 5 = Flop) und loggt sie ein.</li>
+            <li><strong>Schritt 2:</strong> Das Handy geht zurück zur Gruppe. Jetzt rät die restliche Gruppe gemeinsam: Wie hat der Befragte wohl entschieden? Die Gruppe schiebt die Karten in die vermutete Reihenfolge.</li>
+            <li><strong>Schritt 3:</strong> Auflösung! Die Listen werden verglichen.</li>
+        </ul>
+
+        <h3>Das Punktesystem</h3>
+        <p>Jeder übereinstimmende Platz bringt Punkte:</p>
+        <ul>
+            <li>Die <strong>Rategruppe</strong> erhält <strong>+2 Punkte</strong> pro richtig erratenem Platz auf ihr Konto.</li>
+            <li>Der <strong>Befragte</strong> erhält <strong>+1 Punkt</strong> pro richtigem Platz (da er sich gut einschätzen ließ).</li>
+        </ul>
+        <p>Das Spiel geht endlos im Kreis weiter. Nach jeder Runde wandert das Handy zum nächsten Befragten.</p>
+
+        <h3>Impressum</h3>
+        <p><strong>Entwickler & Inhaber:</strong><br>Luca Knies<br>Firmenname: Luca Industry</p>
+
+        <button class="btn" style="margin-top: 30px;" onclick="toggleInfoMenu()">Schließen & Zurück</button>
+    </div>
+</div>
+
 <div class="game-wrapper">
+    <button class="info-trigger" onclick="toggleInfoMenu()">☰</button>
 
     <div id="scr-menu" class="screen active">
         <div class="logo-area">
@@ -194,6 +261,7 @@
         <div id="player-inputs" class="player-input-list">
             <div class="player-row"><input type="text" class="player-name-field" value="Spieler 1"></div>
             <div class="player-row"><input type="text" class="player-name-field" value="Spieler 2"></div>
+            <div class="player-row"><input type="text" class="player-name-field" value="Spieler 3"></div>
         </div>
         
         <div style="display: flex; gap: 10px; margin-bottom: 20px;">
@@ -232,7 +300,6 @@
 
     <div id="scr-leaderboard" class="screen">
         <div class="logo-area"><h2 class="logo-title" style="font-size:28px;">Zwischenstand</h2></div>
-        <p class="instruction-text" style="font-size: 13px;">Alle (inkl. Befragter) bekommen 1 Punkt pro Treffer!</p>
         
         <table class="leaderboard-table">
             <thead>
@@ -277,6 +344,10 @@
     let dragElement = null;
 
     function shuffle(arr) { return arr.sort(() => Math.random() - 0.5); }
+
+    function toggleInfoMenu() {
+        document.getElementById('info-modal').classList.toggle('active');
+    }
 
     function addPlayerField() {
         const container = document.getElementById('player-inputs');
@@ -342,7 +413,7 @@
             card.innerText = word;
             card.setAttribute("draggable", "true");
             
-            // Drag Drop
+            // Drag Drop Desktop
             card.addEventListener('dragstart', function() { this.classList.add('dragging'); dragElement = this; });
             card.addEventListener('dragover', function(e) { e.preventDefault(); this.classList.add('over'); });
             card.addEventListener('dragleave', function() { this.classList.remove('over'); });
@@ -354,7 +425,7 @@
             });
             card.addEventListener('dragend', function() { document.querySelectorAll('.card-item').forEach(c => c.classList.remove('over', 'dragging')); });
             
-            // Touch Logik
+            // Touch Logik Mobile
             card.addEventListener('touchstart', function() { this.classList.add('dragging'); }, {passive: true});
             card.addEventListener('touchmove', function(e) {
                 e.preventDefault();
@@ -412,17 +483,20 @@
             container.appendChild(row);
         });
 
-        // Punkte-Verteilung: Alle aktiven Spieler bekommen die Punkte auf ihr Konto!
-        players.forEach(p => {
-            p.score += hits;
+        // Punktesystem werten
+        players.forEach((p, index) => {
+            if (index === activePlayerIndex) {
+                p.score += (hits * 1);
+            } else {
+                p.score += (hits * 2);
+            }
         });
 
-        document.getElementById('points-summary').innerText = `Volltreffer: ${hits} / 5 richtig! +${hits} Punkte für JEDEN!`;
+        document.getElementById('points-summary').innerText = `Richtig erraten: ${hits} / 5! (Gruppe: +${hits * 2} P. | ${giverName}: +${hits} P.)`;
         switchScreen('scr-result');
     }
 
     function showLeaderboard() {
-        // Sortiere Spieler nach Punkten für die Tabelle (höchste zuerst)
         let sortedPlayers = [...players].sort((a,b) => b.score - a.score);
         const tbody = document.getElementById('leaderboard-body');
         tbody.innerHTML = "";
@@ -441,7 +515,6 @@
     }
 
     function advanceTurn() {
-        // Nächster Spieler im Kreis
         activePlayerIndex = (activePlayerIndex + 1) % players.length;
         startPlayerTurn();
     }
