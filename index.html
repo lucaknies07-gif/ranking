@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Priorities">
+    
+    <title>Priorities - Luca Industry</title>
+    <style>
+        :root {
+            --bg-main: #06060f;
+            --bg-card: #0f101d;
+            --accent-neon: #00f0ff;
+            --accent-purple: #9d00ff;
+            --accent-pink: #ff007f;
+            --text-main: #ffffff;
+            --text-muted: #7d8cb6;
+            --success: #39ff14;
+            --danger: #ff003c;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            /* Neutraler Cyber-Grid Hintergrund für mehr Abwechslung */
+            background-image: 
+                linear-gradient(rgba(15, 16, 40, 0.5) 2px, transparent 2px),
+                linear-gradient(90deg, rgba(15, 16, 40, 0.5) 2px, transparent 2px);
+            background-size: 40px 40px;
+            background-position: center;
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        .game-wrapper {
+            width: 100%;
+            max-width: 450px;
+            background: linear-gradient(160deg, #0e1022, #070814);
+            border: 2px solid #222544;
+            border-radius: 28px;
+            padding: 24px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 240, 255, 0.05);
+            position: relative;
+            backdrop-filter: blur(10px);
+        }
+
+        /* Info Button & Modal */
+        .info-trigger {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid #2d2d44;
+            color: var(--accent-neon);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+        
+        .info-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(4, 5, 15, 0.98);
+            z-index: 100;
+            padding: 24px;
+            overflow-y: auto;
+        }
+        .info-modal.active { display: block; animation: fadeIn 0.2s ease; }
+        .info-content {
+            max-width: 450px;
+            margin: 40px auto;
+            text-align: left;
+        }
+        .info-content h3 { color: var(--accent-neon); margin-top: 20px; margin-bottom: 10px; font-size: 18px; text-transform: uppercase; letter-spacing: 1px;}
+        .info-content p, .info-content li { color: var(--text-muted); font-size: 14px; line-height: 1.6; margin-bottom: 10px; }
+        .info-content ul { padding-left: 20px; }
+
+        /* Screens */
+        .screen { display: none; text-align: center; }
+        .screen.active { display: block; animation: fadeIn 0.3s ease; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Logo & Header */
+        .logo-area { margin-bottom: 25px; padding-right: 30px; }
+        .logo-title {
+            font-size: 38px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            background: linear-gradient(45deg, var(--accent-neon), var(--accent-purple), var(--accent-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .logo-subtitle { font-size: 12px; color: var(--text-muted); margin-top: 6px; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* Mode Selection Buttons */
+        .mode-card {
+            background: #111329;
+            border: 2px solid #24294d;
+            border-radius: 18px;
+            padding: 18px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .mode-card:hover { border-color: var(--accent-neon); background: #161a38; transform: translateY(-2px); }
+        .mode-card h2 { font-size: 18px; color: white; margin-bottom: 4px; }
+        .mode-card p { font-size: 13px; color: var(--text-muted); line-height: 1.4; }
+
+        /* Spieler-Eingabe-Liste */
+        .player-input-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+            max-height: 200px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+        .player-row { display: flex; gap: 10px; }
+        input[type="text"] {
+            width: 100%;
+            background: #14172e;
+            border: 2px solid #282f5c;
+            padding: 12px;
+            border-radius: 12px;
+            color: white;
+            font-size: 15px;
+            font-weight: bold;
+            outline: none;
+        }
+        input[type="text"]:focus { border-color: var(--accent-neon); }
+
+        .btn-small {
+            background: #1b2041;
+            color: white;
+            border: 1px solid #2d366d;
+            padding: 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn {
+            background: linear-gradient(90deg, var(--accent-purple), var(--accent-pink));
+            color: white;
+            border: none;
+            padding: 16px 28px;
+            border-radius: 14px;
+            font-size: 16px;
+            font-weight: bold;
+            text-transform: uppercase;
+            cursor: pointer;
+            width: 100%;
+            box-shadow: 0 6px 20px rgba(255, 0, 127, 0.3);
+            margin-top: 10px;
+            transition: transform 0.1s;
+        }
+        .btn:active { transform: scale(0.98); }
+
+        /* Listen & Drag-Karten */
+        .instruction-text { font-size: 16px; color: var(--text-muted); margin-bottom: 20px; line-height: 1.5; }
+        .highlight-name { color: var(--accent-neon); font-weight: bold; font-size: 20px; display: block; margin-top: 5px; }
+
+        .list-box { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+        .ranking-row { display: flex; align-items: center; gap: 12px; }
+        .num-indicator { font-size: 18px; font-weight: 900; color: var(--text-muted); width: 20px; }
+        
+        .card-item {
+            background: linear-gradient(135deg, #171a36, #101226);
+            border: 1px solid #282d59;
+            padding: 14px;
+            border-radius: 14px;
+            flex-grow: 1;
+            font-weight: 600;
+            font-size: 16px;
+            text-align: left;
+            cursor: grab;
+        }
+        .card-item.dragging { opacity: 0.4; }
+        .card-item.over { border: 1px dashed var(--accent-neon); }
+
+        /* Result View */
+        .res-row {
+            background: #111326;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 4px solid var(--accent-pink);
+        }
+        .res-row.is-correct { border-left-color: var(--success); }
+        .badge-pill { padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: bold; background: #1c1f3d; color: var(--text-muted); margin-left: 4px; }
+        .badge-pill.match { background: var(--success); color: #000; }
+
+        /* Rangliste / Tabelle */
+        .leaderboard-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .leaderboard-table th, .leaderboard-table td { padding: 12px 16px; text-align: left; }
+        .leaderboard-table th { background: #151833; color: var(--accent-neon); font-size: 12px; text-transform: uppercase; }
+        .leaderboard-table tr { border-bottom: 1px solid #1a1e3d; }
+        .leaderboard-table tr:last-child { border-bottom: none; }
+        .rank-num { font-weight: bold; color: var(--accent-pink); }
+
+        /* --- ADVANCED 3D MONSTER ARENA --- */
+        .boss-container {
+            background: #0d0f22;
+            border: 2px solid #222754;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            position: relative;
+            perspective: 800px; /* Ermöglicht echtes 3D-Feeling */
+        }
+        
+        /* Das 3D Cyber-Monster */
+        .monster-wrapper {
+            height: 100px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+        
+        .monster-avatar {
+            width: 76px;
+            height: 76px;
+            background: linear-gradient(135deg, #ff007f 0%, #400080 100%);
+            border-radius: 24% 76% 38% 62% / 46% 30% 70% 54%;
+            position: relative;
+            box-shadow: 0 0 30px rgba(255, 0, 127, 0.5), inset 0 0 15px rgba(255, 255, 255, 0.2);
+            animation: monsterFloat 4s ease-in-out infinite alternate;
+            transform-style: preserve-3d;
+        }
+        
+        /* Glühende Cyber-Augen */
+        .monster-avatar::before, .monster-avatar::after {
+            content: '';
+            position: absolute;
+            top: 26px;
+            width: 12px;
+            height: 6px;
+            background: var(--accent-neon);
+            border-radius: 3px;
+            box-shadow: 0 0 14px var(--accent-neon);
+        }
+        .monster-avatar::before { left: 18px; transform: rotate(10deg); }
+        .monster-avatar::after { right: 18px; transform: rotate(-10deg); }
+        
+        @keyframes monsterFloat {
+            0% { transform: translateY(0) rotateX(10deg) rotateY(-5deg); }
+            100% { transform: translateY(-12px) rotateX(-10deg) rotateY(10deg); }
+        }
+
+        /* 3D Treffer-Flash-Animation */
+        .monster-avatar.hit {
+            animation: monsterHit3D 0.4s ease-out;
+        }
+        @keyframes monsterHit3D {
+            0% { transform: scale(1) translateZ(0); background: #ffffff; filter: brightness(2); }
+            20% { transform: scale(0.8) translateZ(-50px) rotateY(-20deg); background: var(--danger); }
+            60% { transform: scale(1.1) translateZ(30px) rotateY(20deg); }
+            100% { transform: scale(1) translateZ(0); }
+        }
+
+        /* Dynamisches 3D-Projektil (Wird per JS erzeugt) */
+        .projectile {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background: radial-gradient(circle, #fff, var(--accent-neon), transparent);
+            border-radius: 50%;
+            box-shadow: 0 0 20px var(--accent-neon);
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 5;
+            animation: shootUp 0.6s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+        }
+        @keyframes shootUp {
+            0% { bottom: -20px; transform: translateX(-50%) scale(0.5) translateZ(-100px); opacity: 1; }
+            50% { transform: translateX(-50%) scale(1.5) translateZ(50px); }
+            100% { bottom: 50px; transform: translateX(-50%) scale(1) translateZ(0); opacity: 0; }
+        }
+
+        /* Helden / Team Sektion */
+        .team-avatar {
+            font-size: 36px;
+            margin-bottom: 5px;
+            text-shadow: 0 0 15px rgba(57, 255, 20, 0.4);
+        }
+        
+        /* Fortschrittsbalken */
+        .hp-bar-wrapper {
+            width: 100%;
+            background: #151833;
+            height: 18px;
+            border-radius: 9px;
+            overflow: hidden;
+            border: 1px solid #2d3366;
+            margin-top: 6px;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);
+        }
+        .hp-bar {
+            height: 100%;
+            width: 100%;
+            transition: width 0.8s cubic-bezier(0.075, 0.82, 0.165, 1);
+        }
+        .hp-bar.monster-hp { background: linear-gradient(90deg, var(--accent-pink), var(--danger)); }
+        .hp-bar.team-hp { background: linear-gradient(90deg, #00ff66, var(--success)); }
+        
+        .hp-text {
+            font-size: 11px;
+            font-weight: bold;
+            color: var(--text-muted);
+            margin-top: 4px;
+            display: block;
+            text-align: right;
+            letter-spacing: 0.5px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="info-modal" class="info-modal">
+    <div class="info-content">
+        <div class="logo-area" style="text-align: center;">
+            <h2 class="logo-title" style="font-size: 28px;">Info & Regeln</h2>
+        </div>
+        
+        <h3>Spieleanleitung (Allgemein)</h3>
+        <p><strong>Priorities</strong> ist das Partyspiel der ehrlichen Meinungen. Ein Befragter sortiert heimlich 5 zufällige Begriffe (1 = Top, 5 = Flop) per Drag & Drop. Die Gruppe rät anschließend gemeinsam die genaue Reihenfolge.</p>
+
+        <h3>Modus 1: Kreis-Duell</h3>
+        <p>Ihr spielt alle gegeneinander auf eine gemeinsame Bestenliste.</p>
+        <ul>
+            <li>Die <strong>Rategruppe</strong> erhält <strong>+2 Punkte</strong> pro richtigem Platz.</li>
+            <li>Der <strong>Befragte</strong> erhält <strong>+1 Punkt</strong> pro richtigem Platz.</li>
+        </ul>
+
+        <h3>Modus 2: Bosskampf</h3>
+        <p>Ihr kämpft als Abenteuer-Team gemeinsam gegen das Punkte-Monster <strong>Prioritron</strong>!</p>
+        <ul>
+            <li>Jeder <strong>richtige Treffer</strong> feuert ein 3D-Cyber-Projektil ab und zieht dem Monster **8 HP** ab.</li>
+            <li>Jeder <strong>Fehltipp</strong> lässt das Monster kontern, wodurch das Team **6 HP** verliert.</li>
+            <li>Das Team startet im Vorteil mit **150 HP** (Das Monster hat 100 HP). Besiegt es!</li>
+        </ul>
+
+        <h3>Impressum</h3>
+        <p><strong>Entwickler & Inhaber:</strong><br>Luca Knies<br>Firmenname: Luca Industry</p>
+
+        <button class="btn" style="margin-top: 30px;" onclick="toggleInfoMenu()">Schließen & Zurück</button>
+    </div>
+</div>
+
+<div class="game-wrapper">
+    <button class="info-trigger" onclick="toggleInfoMenu()">☰</button>
+
+    <div id="scr-mode-select" class="screen active">
+        <div class="logo-area">
+            <h1 class="logo-title">Priorities</h1>
+            <div class="logo-subtitle">Wähle deinen Spielmodus</div>
+        </div>
+        <p class="instruction-text" style="font-size: 14px; margin-bottom: 25px;">Wie möchtet ihr heute spielen?</p>
+        
+        <div class="mode-card" onclick="selectMode('duell')">
+            <h2>⚔️ Kreis-Duell</h2>
+            <p>Jeder gegen Jeden. Sammelt einzeln Punkte und schaut, wer am Ende ganz oben auf der Bestenliste steht.</p>
+        </div>
+
+        <div class="mode-card" onclick="selectMode('coop')">
+            <h2>👾 Bosskampf-Modus</h2>
+            <p>Formiert ein gestärktes Team (150 HP) und schießt mit 3D-Effekten das Punkte-Monster (100 HP) down!</p>
+        </div>
+    </div>
+
+    <div id="scr-menu" class="screen">
+        <div class="logo-area">
+            <h1 class="logo-title">Priorities</h1>
+            <div class="logo-subtitle" id="menu-mode-subtitle">Spieler eintragen</div>
+        </div>
+        <p class="instruction-text" style="font-size: 14px;">Trage die Namen der Spieler ein, die reihum an der Reihe sind.</p>
+        
+        <div id="player-inputs" class="player-input-list">
+            <div class="player-row"><input type="text" class="player-name-field" value="Spieler 1"></div>
+            <div class="player-row"><input type="text" class="player-name-field" value="Spieler 2"></div>
+            <div class="player-row"><input type="text" class="player-name-field" value="Spieler 3"></div>
+        </div>
+        
+        <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+            <button class="btn-small" style="flex: 1;" onclick="addPlayerField()">+ Spieler</button>
+            <button class="btn-small" style="flex: 1;" onclick="removePlayerField()">- Entfernen</button>
+        </div>
+        
+        <button class="btn" onclick="setupGame()">Abenteuer Starten</button>
+    </div>
+
+    <div id="scr-rank" class="screen">
+        <p class="instruction-text">Niemand hingucken! Handy abgeben an: <span class="highlight-name" id="current-giver-name">Spieler X</span></p>
+        <p class="instruction-text" style="font-size: 13px; margin-top: -10px;">Sortiere die Begriffe nach deinen Vorlieben (1 = Top, 5 = Flop).</p>
+        <div id="box-rank" class="list-box"></div>
+        <button class="btn" onclick="saveSecretRanking()">Reihenfolge einloggen</button>
+    </div>
+
+    <div id="scr-handover" class="screen">
+        <div class="logo-area"><h2 class="logo-title" style="font-size:30px;">Gespeichert!</h2></div>
+        <p class="instruction-text">Gib das Handy jetzt zurück an die **gesamte Gruppe**.</p>
+        <button class="btn" onclick="startGuessingPhase()">Gruppe ist bereit</button>
+    </div>
+
+    <div id="scr-guess" class="screen">
+        <p class="instruction-text"><strong>Die Gruppe rät gemeinsam!</strong><br>Wie hat <span class="highlight-name" id="guess-target-name">Spieler X</span> gerankt?</p>
+        <div id="box-guess" class="list-box"></div>
+        <button class="btn" onclick="evaluateRound()">Auflösen & Werten</button>
+    </div>
+
+    <div id="scr-result" class="screen">
+        <h2 style="margin-bottom: 10px; font-weight: 800;">Kampf-Auswertung</h2>
+        
+        <div id="coop-mini-arena" class="boss-container" style="display:none; overflow: hidden; height: 150px;">
+            <div class="monster-wrapper" id="projectile-container">
+                <div class="monster-avatar" id="result-monster-avatar"></div>
+            </div>
+        </div>
+
+        <div id="box-result"></div>
+        <p class="instruction-text" id="points-summary" style="margin: 15px 0 5px; color: var(--accent-neon); font-weight: bold;"></p>
+        <button class="btn" onclick="showLeaderboard()">Zum Punktestand</button>
+    </div>
+
+    <div id="scr-leaderboard" class="screen">
+        <div class="logo-area"><h2 class="logo-title" style="font-size:28px;" id="board-title">Zwischenstand</h2></div>
+        
+        <div id="view-duell-leaderboard">
+            <table class="leaderboard-table">
+                <thead>
+                    <tr>
+                        <th style="width: 50px;">Platz</th>
+                        <th>Spieler</th>
+                        <th style="text-align: right;">Punkte</th>
+                    </tr>
+                </thead>
+                <tbody id="leaderboard-body"></tbody>
+            </table>
+        </div>
+
+        <div id="view-coop-leaderboard" style="display:none;">
+            
+            <div class="boss-container">
+                <div style="font-weight: 800; font-size: 14px; color: var(--accent-pink); letter-spacing: 1px;">BOSS: PRIORITRON</div>
+                <div class="monster-wrapper">
+                    <div class="monster-avatar" id="main-monster-avatar"></div>
+                </div>
+                <div class="hp-bar-wrapper">
+                    <div class="hp-bar monster-hp" id="bar-monster" style="width: 100%;"></div>
+                </div>
+                <div class="hp-text" id="text-monster-hp">100 / 100 HP</div>
+            </div>
+
+            <div class="boss-container" style="border-color: #1f3d24;">
+                <div style="font-weight: 800; font-size: 14px; color: var(--success); letter-spacing: 1px;">EUER ABENTEUER-TEAM</div>
+                <div class="team-avatar">🛡️⚡🔮</div>
+                <div class="hp-bar-wrapper">
+                    <div class="hp-bar team-hp" id="bar-team" style="width: 100%;"></div>
+                </div>
+                <div class="hp-text" id="text-team-hp">150 / 150 HP</div>
+            </div>
+
+            <p class="instruction-text" id="coop-status-text" style="font-size:15px; font-weight:bold;"></p>
+        </div>
+        
+        <button class="btn" id="btn-next-turn" onclick="advanceTurn()">Nächste Runde</button>
+    </div>
+</div>
+
+<script>
+    const nomenPool = [
+        "Käsebrot", "Lottogewinn", "Zahnarztbesuch", "Dönerknoblauch", "Sockenloch", 
+        "Strandurlaub", "Montagmorgen", "Kaffeevollautomat", "Steuererklärung", "Hundewelpe",
+        "WLAN-Ausfall", "Regenschauer", "Kaltgetränk", "Strafzettel", "Mückenstich",
+        "Schokopudding", "Weckergeräusch", "Sofa-Nachmittag", "Fitnessstudio", "Kinofilm",
+        "Traumauto", "Zahnseide", "Lieblingssong", "Dauerregen", "Bananenschale",
+        "Taschengeld", "Mittagsschlaf", "Spargelzeit", "Kühlschrankleere", "Verkehrsstau",
+        "Katzenvideo", "Gewitterblitz", "Pizzaabend", "Kabeldrecksalat", "Sommerhitze",
+        "Kuscheldecke", "Eierkocher", "Meeresrauschen", "Wollpullover", "Taschenlampe",
+        "Bratwurstbude", "Sonnenbrand", "Heizungsausfall", "Glücksgefühle", "Gummibärchen",
+        "Schlüsselverlust", "Kopfkissen", "Achterbahnfahrt", "Taschentuch", "Flohmarkt",
+        "Baustellenlärm", "Feierabend", "Heißluftballon", "Popcornmaschine", "Regenbogen",
+        "Müllabfuhr", "Kekskrümel", "Schneeballschlacht", "Campingzelt", "Dschungelreise",
+        "Einkaufswagen", "Luftmatratze", "Geburtstagstorte", "Lagerfeuer", "Seifenblase",
+        "Schaukelstuhl", "Schokoladenkuchen", "Hängematte", "Diskogugel", "Glühwürmchen",
+        "Wolkenbruch", "Frühstücksei", "Klavierkonzert", "Zirkuszelt", "Sternschnuppe",
+        "Gartenparty", "Turnschuh", "Liebesbrief", "Zuckerwatte", "Abenteuerlust"
+    ];
+
+    let gameMode = 'duell'; 
+    let players = []; 
+    let activePlayerIndex = 0;
+    let roundWords = [];
+    let secretRanking = [];
+    let guessRanking = [];
+    let dragElement = null;
+
+    // Erleichtertes Balancing: Team startet mit 150 HP, Boss mit 100 HP
+    let monsterHP = 100;
+    let teamHP = 150;
+
+    function shuffle(arr) { return arr.sort(() => Math.random() - 0.5); }
+
+    function toggleInfoMenu() {
+        document.getElementById('info-modal').classList.toggle('active');
+    }
+
+    function selectMode(mode) {
+        gameMode = mode;
+        if(mode === 'duell') {
+            document.getElementById('menu-mode-subtitle').innerText = "Kreis-Duell";
+        } else {
+            document.getElementById('menu-mode-subtitle').innerText = "Bosskampf-Modus";
+        }
+        switchScreen('scr-menu');
+    }
+
+    function addPlayerField() {
+        const container = document.getElementById('player-inputs');
+        const count = container.children.length + 1;
+        const row = document.createElement('div');
+        row.className = 'player-row';
+        row.innerHTML = `<input type="text" class="player-name-field" value="Spieler ${count}">`;
+        container.appendChild(row);
+    }
+
+    function removePlayerField() {
+        const container = document.getElementById('player-inputs');
+        if (container.children.length > 2) {
+            container.removeChild(container.lastChild);
+        }
+    }
+
+    function switchScreen(id) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+    }
+
+    function setupGame() {
+        players = [];
+        monsterHP = 100;
+        teamHP = 150; // Gestärktes Team-Leben
+        
+        const fields = document.querySelectorAll('.player-name-field');
+        fields.forEach(f => {
+            let name = f.value.trim();
+            if (name) players.push({ name: name, score: 0 });
+        });
+
+        if (players.length < 2) {
+            alert("Bitte trage mindestens 2 Spieler ein!");
+            return;
+        }
+
+        activePlayerIndex = 0;
+        startPlayerTurn();
+    }
+
+    function startPlayerTurn() {
+        let currentGiver = players[activePlayerIndex].name;
+        document.getElementById('current-giver-name').innerText = currentGiver;
+        document.getElementById('guess-target-name').innerText = currentGiver;
+
+        let shuffled = shuffle([...nomenPool]);
+        roundWords = shuffled.slice(0, 5);
+
+        renderList("box-rank", [...roundWords]);
+        switchScreen('scr-rank');
+    }
+
+    function renderList(containerId, words) {
+        const container = document.getElementById(containerId);
+        container.innerHTML = "";
+        
+        words.forEach((word, index) => {
+            const row = document.createElement("div");
+            row.className = "ranking-row";
+            row.innerHTML = `<div class="num-indicator">${index + 1}</div>`;
+            
+            const card = document.createElement("div");
+            card.className = "card-item";
+            card.innerText = word;
+            card.setAttribute("draggable", "true");
+            
+            // Drag Drop Desktop
+            card.addEventListener('dragstart', function() { this.classList.add('dragging'); dragElement = this; });
+            card.addEventListener('dragover', function(e) { e.preventDefault(); this.classList.add('over'); });
+            card.addEventListener('dragleave', function() { this.classList.remove('over'); });
+            card.addEventListener('drop', function(e) {
+                e.stopPropagation();
+                if (dragElement !== this) {
+                    let tmp = this.innerText; this.innerText = dragElement.innerText; dragElement.innerText = tmp;
+                }
+            });
+            card.addEventListener('dragend', function() { document.querySelectorAll('.card-item').forEach(c => c.classList.remove('over', 'dragging')); });
+            
+            // Touch Mobile
+            card.addEventListener('touchstart', function() { this.classList.add('dragging'); }, {passive: true});
+            card.addEventListener('touchmove', function(e) {
+                e.preventDefault();
+                let t = e.touches[0];
+                let target = document.elementFromPoint(t.clientX, t.clientY);
+                document.querySelectorAll('.card-item').forEach(c => c.classList.remove('over'));
+                if (target && target.classList.contains('card-item') && target !== this) target.classList.add('over');
+            }, {passive: false});
+            card.addEventListener('touchend', function(e) {
+                this.classList.remove('dragging');
+                let t = e.changedTouches[0];
+                let target = document.elementFromPoint(t.clientX, t.clientY);
+                if (target && target.classList.contains('card-item') && target !== this) {
+                    let tmp = target.innerText; target.innerText = this.innerText; this.innerText = tmp;
+                }
+                document.querySelectorAll('.card-item').forEach(c => c.classList.remove('over'));
+            });
+
+            row.appendChild(card);
+            container.appendChild(row);
+        });
+    }
+
+    function saveSecretRanking() {
+        secretRanking = Array.from(document.getElementById("box-rank").querySelectorAll('.card-item')).map(c => c.innerText);
+        switchScreen('scr-handover');
+    }
+
+    function startGuessingPhase() {
+        renderList("box-guess", shuffle([...roundWords]));
+        switchScreen('scr-guess');
+    }
+
+    function evaluateRound() {
+        guessRanking = Array.from(document.getElementById("box-guess").querySelectorAll('.card-item')).map(c => c.innerText);
+        const container = document.getElementById("box-result");
+        container.innerHTML = "";
+        let hits = 0;
+
+        let giverName = players[activePlayerIndex].name;
+
+        secretRanking.forEach((word, index) => {
+            let correctPos = index + 1;
+            let guessedPos = guessRanking.indexOf(word) + 1;
+            let isMatch = (correctPos === guessedPos);
+            if (isMatch) hits++;
+
+            let row = document.createElement("div");
+            row.className = `res-row ${isMatch ? 'is-correct' : ''}`;
+            row.innerHTML = `<span>${word}</span>
+                <div>
+                    <span class="badge-pill">${giverName}: ${correctPos}</span>
+                    <span class="badge-pill ${isMatch ? 'match' : ''}">Gruppe: ${guessedPos}</span>
+                </div>`;
+            container.appendChild(row);
+        });
+
+        if (gameMode === 'duell') {
+            document.getElementById('coop-mini-arena').style.display = "none";
+            players.forEach((p, index) => {
+                if (index === activePlayerIndex) {
+                    p.score += (hits * 1);
+                } else {
+                    p.score += (hits * 2);
+                }
+            });
+            document.getElementById('points-summary').innerText = `Richtig erraten: ${hits} / 5!\n(Gruppe: +${hits * 2} P. | ${giverName}: +${hits} P.)`;
+        } else {
+            // KOOP BOSS CALCULATION
+            document.getElementById('coop-mini-arena').style.display = "block";
+            let missed = 5 - hits;
+
+            // Faires Balancing: Monster verliert 8 HP pro Treffer, Team verliert nur 6 HP pro Fehler
+            let damageToMonster = hits * 8;
+            let damageToTeam = missed * 6;
+
+            monsterHP = Math.max(0, monsterHP - damageToMonster);
+            teamHP = Math.max(0, teamHP - damageToTeam);
+
+            // Dynamisches Erzeugen von 3D-Schüssen je nach Trefferanzahl
+            if (hits > 0) {
+                const arena = document.getElementById('projectile-container');
+                const miniMonster = document.getElementById('result-monster-avatar');
+                
+                for (let i = 0; i < hits; i++) {
+                    setTimeout(() => {
+                        let proj = document.createElement('div');
+                        proj.className = 'projectile';
+                        // Leicht versetzte X-Achse für mehr Dynamik
+                        proj.style.left = (40 + Math.random() * 20) + "%"; 
+                        arena.appendChild(proj);
+                        
+                        // Wenn das Projektil einschlägt -> Monster zuckt
+                        setTimeout(() => {
+                            miniMonster.classList.add('hit');
+                            setTimeout(() => miniMonster.classList.remove('hit'), 400);
+                            proj.remove();
+                        }, 550);
+                    }, i * 150); // Nacheinander abfeuern
+                }
+            }
+
+            document.getElementById('points-summary').innerText = `⚔️ Ihr feuert ${hits} Projektile ab! (Monster: -${damageToMonster} HP)\n💥 Das Monster kontert mit ${missed} Schlägen! (Team: -${damageToTeam} HP)`;
+        }
+
+        switchScreen('scr-result');
+    }
+
+    function showLeaderboard() {
+        const btnNext = document.getElementById('btn-next-turn');
+        btnNext.style.display = "block";
+        btnNext.innerText = "Nächste Runde";
+
+        if (gameMode === 'duell') {
+            document.getElementById('board-title').innerText = "Zwischenstand";
+            document.getElementById('view-duell-leaderboard').style.display = "block";
+            document.getElementById('view-coop-leaderboard').style.display = "none";
+
+            let sortedPlayers = [...players].sort((a,b) => b.score - a.score);
+            const tbody = document.getElementById('leaderboard-body');
+            tbody.innerHTML = "";
+
+            sortedPlayers.forEach((p, idx) => {
+                let tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="rank-num">#${idx + 1}</td>
+                    <td style="font-weight:600;">${p.name} ${p.name === players[activePlayerIndex].name ? '👤' : ''}</td>
+                    <td style="text-align:right; font-weight:bold; color:var(--accent-neon);">${p.score}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        } else {
+            // BOSS ARENA BARS UPDATE
+            document.getElementById('board-title').innerText = "Bosskampf Arena";
+            document.getElementById('view-duell-leaderboard').style.display = "none";
+            document.getElementById('view-coop-leaderboard').style.display = "block";
+
+            // Update Bars (Prozentual berechnet)
+            document.getElementById('bar-monster').style.width = monsterHP + "%";
+            document.getElementById('text-monster-hp').innerText = monsterHP + " / 100 HP";
+
+            // Team-HP Maxima berücksichtigen (150 HP = 100%)
+            let teamPercentage = (teamHP / 150) * 100;
+            document.getElementById('bar-team').style.width = teamPercentage + "%";
+            document.getElementById('text-team-hp').innerText = teamHP + " / 150 HP";
+
+            let statusText = document.getElementById('coop-status-text');
+            
+            if (monsterHP <= 0) {
+                statusText.innerText = "🎉 GLORREICHER SIEG! Ihr habt Prioritron in Stücke geschossen! Das Abenteuer ist bestanden!";
+                statusText.style.color = "var(--success)";
+                btnNext.innerText = "Neues Abenteuer starten";
+            } else if (teamHP <= 0) {
+                statusText.innerText = "💀 GAME OVER! Eure Schilde sind kollabiert. Das Monster war heute stärker.";
+                statusText.style.color = "var(--danger)";
+                btnNext.innerText = "Erneut versuchen";
+            } else {
+                statusText.innerText = "⚡ Schilde halten! Macht euch bereit für den nächsten Ansturm!";
+                statusText.style.color = "var(--accent-neon)";
+            }
+        }
+
+        switchScreen('scr-leaderboard');
+    }
+
+    function advanceTurn() {
+        if(gameMode === 'coop' && (monsterHP <= 0 || teamHP <= 0)) {
+            switchScreen('scr-mode-select');
+            return;
+        }
+
+        activePlayerIndex = (activePlayerIndex + 1) % players.length;
+        startPlayerTurn();
+    }
+</script>
+</body>
+</html>
