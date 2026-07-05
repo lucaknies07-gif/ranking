@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Priority">
+    <title>Priority - Luca Industry</title>
+    <style>
+        :root {
+            --bg-main: #06060f;
+            --bg-card: #0f101d;
+            --accent-neon: #00f0ff;
+            --accent-purple: #9d00ff;
+            --accent-pink: #ff007f;
+            --text-main: #ffffff;
+            --text-muted: #7d8cb6;
+            --success: #39ff14;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            background-image: 
+                linear-gradient(rgba(15, 16, 40, 0.5) 2px, transparent 2px),
+                linear-gradient(90deg, rgba(15, 16, 40, 0.5) 2px, transparent 2px);
+            background-size: 40px 40px;
+            background-position: center;
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+            overflow-x: hidden;
+        }
+
+        .game-wrapper {
+            width: 100%;
+            max-width: 450px;
+            height: 680px; 
+            background: linear-gradient(160deg, #0e1022, #070814);
+            border: 2px solid #222544;
+            border-radius: 28px;
+            padding: 24px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 240, 255, 0.05);
+            position: relative;
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .screen { 
+            display: none; 
+            text-align: center; 
+            height: 100%;
+            flex-direction: column;
+        }
+        .screen.active { 
+            display: flex; 
+            animation: fadeIn 0.3s ease; 
+        }
+
+        .scroll-container {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 4px;
+            margin-top: 10px;
+        }
+        .scroll-container::-webkit-scrollbar { width: 6px; }
+        .scroll-container::-webkit-scrollbar-track { background: transparent; }
+        .scroll-container::-webkit-scrollbar-thumb { background: #24294d; border-radius: 3px; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .logo-area { margin-bottom: 15px; flex-shrink: 0; }
+        .logo-title {
+            font-size: 34px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            background: linear-gradient(45deg, var(--accent-neon), var(--accent-purple), var(--accent-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .logo-subtitle { font-size: 11px; color: var(--text-muted); margin-top: 4px; text-transform: uppercase; letter-spacing: 1px; }
+
+        .game-card {
+            background: #111329;
+            border: 2px solid #24294d;
+            border-radius: 18px;
+            padding: 16px;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 12px;
+        }
+        .game-card:hover { border-color: var(--accent-neon); background: #161a38; transform: translateY(-2px); }
+        
+        .game-card.coming-soon {
+            opacity: 0.5;
+            cursor: not-allowed;
+            border-color: #1c1f3d;
+        }
+        .game-card.coming-soon:hover {
+            transform: none;
+            border-color: #1c1f3d;
+            background: #111329;
+        }
+        .coming-soon-badge {
+            font-size: 10px;
+            background: #24294d;
+            color: var(--accent-neon);
+            padding: 4px 8px;
+            border-radius: 6px;
+            text-transform: uppercase;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+        }
+
+        .game-card-content { flex: 1; }
+        .game-card h2 { font-size: 17px; color: white; margin-bottom: 3px; font-weight: 800; }
+        .game-card p { font-size: 12px; color: var(--text-muted); line-height: 1.4; }
+        
+        .game-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .setup-section { background: #111326; border: 1px solid #23274c; border-radius: 16px; padding: 16px; margin-bottom: 16px; text-align: left; }
+        .setup-section h3 { font-size: 14px; color: var(--accent-neon); text-transform: uppercase; margin-bottom: 12px; letter-spacing: 0.5px; }
+
+        .player-input-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px; max-height: 160px; overflow-y: auto; }
+        input[type="text"] { width: 100%; background: #14172e; border: 2px solid #282f5c; padding: 12px; border-radius: 12px; color: white; font-size: 15px; font-weight: bold; outline: none; text-align: center; }
+        input[type="text"]:focus { border-color: var(--accent-neon); }
+
+        .btn-small { background: #1b2041; color: white; border: 1px solid #2d366d; padding: 10px; border-radius: 10px; cursor: pointer; font-size: 13px; font-weight: bold; }
+        .btn { background: linear-gradient(90deg, var(--accent-purple), var(--accent-pink)); color: white; border: none; padding: 16px 28px; border-radius: 14px; font-size: 16px; font-weight: bold; text-transform: uppercase; cursor: pointer; width: 100%; box-shadow: 0 6px 20px rgba(255, 0, 127, 0.3); margin-top: auto; flex-shrink: 0; }
+        .btn:active { transform: scale(0.98); }
+        .btn-secondary { background: #171a36; border: 1px solid #2c3266; margin-top: 8px; box-shadow: none; color: var(--text-muted); }
+
+        .instruction-text { font-size: 15px; color: var(--text-muted); margin-bottom: 15px; line-height: 1.5; }
+        .highlight-name { color: var(--accent-neon); font-weight: bold; font-size: 20px; display: block; margin-top: 5px; text-shadow: 0 0 10px rgba(0, 240, 255, 0.3); }
+
+        .list-box { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; overflow-y: auto; flex: 1; }
+        .ranking-row { display: flex; align-items: center; gap: 12px; }
+        .num-indicator { font-size: 16px; font-weight: 900; color: var(--text-muted); width: 20px; text-align: center; }
+        
+        .card-item { 
+            background: linear-gradient(135deg, #171a36, #101226); 
+            border: 1px solid #282d59; 
+            padding: 14px; 
+            border-radius: 14px; 
+            flex-grow: 1; 
+            font-weight: 600; 
+            font-size: 15px; 
+            text-align: left; 
+            cursor: grab; 
+            position: relative; 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between;
+            touch-action: none; 
+            user-select: none;
+        }
+        .card-drag-handle { width: 16px; height: 12px; display: flex; flex-direction: column; justify-content: space-between; opacity: 0.4; }
+        .card-drag-handle span { display: block; height: 2px; background: white; width: 100%; border-radius: 1px; }
+        .card-item.dragging { opacity: 0.4; background: #24294d; }
+        .card-item.over { border: 2px dashed var(--accent-neon); }
+
+        .res-row { background: #111326; padding: 12px; border-radius: 10px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--accent-pink); text-align: left;}
+        .res-row.is-correct { border-left-color: var(--success); }
+        .badge-pill { padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: bold; background: #1c1f3d; color: var(--text-muted); margin-left: 4px; }
+        .badge-pill.match { background: var(--success); color: #000; }
+
+        .score-table { width: 100%; border-collapse: collapse; margin-top: 15px; text-align: left; background: #111326; border-radius: 14px; overflow: hidden; }
+        .score-table th, .score-table td { padding: 12px; font-size: 14px; }
+        .score-table th { background: #1c1f3d; color: var(--accent-neon); text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px; }
+        .score-table tr { border-bottom: 1px solid #1c1f3d; }
+        .score-table tr:last-child { border-bottom: none; }
+    </style>
+</head>
+<body>
+
+<div class="game-wrapper">
+
+    <div id="scr-hub" class="screen active">
+        <div class="logo-area">
+            <h1 class="logo-title">Priority</h1>
+            <div class="logo-subtitle">Luca Industry Standalone</div>
+        </div>
+        
+        <div class="scroll-container">
+            <div class="game-card" onclick="launchGame('normal')">
+                <div class="game-icon" style="background: rgba(157, 0, 255, 0.15); color: var(--accent-purple);">K</div>
+                <div class="game-card-content">
+                    <h2>Klassischer Modus</h2>
+                    <p>Sortiere Alltagsbegriffe und messe dich im Team.</p>
+                </div>
+            </div>
+
+            <div class="game-card coming-soon">
+                <div class="game-icon" style="background: rgba(255, 0, 127, 0.15); color: var(--text-muted);">B</div>
+                <div class="game-card-content">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:3px;">
+                        <h2>Bossmodus</h2>
+                        <span class="coming-soon-badge">Soon</span>
+                    </div>
+                    <p>Die ultimative Herausforderung f&uuml;r echte Experten.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="scr-setup" class="screen">
+        <div class="logo-area"><h1 class="logo-title">Anmeldung</h1></div>
+        <div class="setup-section">
+            <h3>Spieler eintragen</h3>
+            <div id="player-inputs" class="player-input-list">
+                <div class="player-row"><input type="text" class="player-name-field" value="Spieler 1" onfocus="this.select()"></div>
+                <div class="player-row"><input type="text" class="player-name-field" value="Spieler 2" onfocus="this.select()"></div>
+                <div class="player-row"><input type="text" class="player-name-field" value="Spieler 3" onfocus="this.select()"></div>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn-small" style="flex: 1;" onclick="addPlayerField()">+ Spieler</button>
+                <button class="btn-small" style="flex: 1;" onclick="removePlayerField()">- Entfernen</button>
+            </div>
+        </div>
+        <button class="btn" onclick="confirmPlayersAndStart()">Runde Starten</button>
+        <button class="btn btn-secondary" onclick="backToHub()">Zur&uuml;ck</button>
+    </div>
+
+    <div id="scr-rank" class="screen">
+        <p class="instruction-text">Geheim sortieren! Handy an: <span class="highlight-name" id="current-giver-name"></span></p>
+        <div id="box-rank" class="list-box"></div>
+        <button class="btn" onclick="saveSecretRanking()">Einloggen</button>
+    </div>
+
+    <div id="scr-handover" class="screen">
+        <p class="instruction-text" style="margin-top: 40px;">Gespeichert! Reiche das Smartphone zur&uuml;ck an die Gruppe.</p>
+        <button class="btn" onclick="startGuessingPhase()">Gruppe &uuml;bernimmt</button>
+    </div>
+
+    <div id="scr-guess" class="screen">
+        <p class="instruction-text">Wie sieht die Rangliste von <span class="highlight-name" id="guess-target-name"></span> aus?</p>
+        <div id="box-guess" class="list-box"></div>
+        <button class="btn" onclick="evaluatePrioritiesRound()">Aufl&ouml;sen</button>
+    </div>
+
+    <div id="scr-global-results" class="screen">
+        <h2>Runden-Auswertung</h2>
+        <div id="box-visual-results" style="margin-top:15px;"></div>
+        
+        <h3 style="margin-top:20px; text-align:left; color:var(--accent-neon);">Aktueller Tabellenstand</h3>
+        <table class="score-table">
+            <thead>
+                <tr>
+                    <th>Platz</th>
+                    <th>Spieler</th>
+                    <th>Runde</th>
+                    <th>Gesamt</th>
+                </tr>
+            </thead>
+            <tbody id="score-table-body"></tbody>
+        </table>
+        
+        <button class="btn" onclick="advanceNextTurn()">N&auml;chste Runde</button>
+        <button class="btn btn-secondary" onclick="backToHub()">Hauptmen&uuml;</button>
+    </div>
+
+</div>
+
+<script>
+    const prioritiesPool = ["K\u00e4sebrot", "Lottogewinn", "Zahnarztbesuch", "D\u00f6ner mit Knoblauch", "Sockenloch", "Strandurlaub", "Montagmorgen", "Kaffeevollautomat", "Steuererkl\u00e4rung", "Hundewelpe", "WLAN-Ausfall", "Regenschauer", "Kaltgetr\u00e4nk", "Strafzettel", "M\u00fcckenstich"];
+
+    let players = [];
+    let activePlayerIndex = 0;
+    let roundWords = [];
+    let secretRanking = [];
+    let dragElement = null;
+    let latestPointsGained = {};
+
+    function switchScreen(id) {
+        const screens = document.querySelectorAll('.screen');
+        for (let i = 0; i < screens.length; i++) {
+            screens[i].classList.remove('active');
+        }
+        document.getElementById(id).classList.add('active');
+    }
+
+    function backToHub() { switchScreen('scr-hub'); }
+
+    function launchGame(mode) {
+        if (mode !== 'normal') return; 
+        switchScreen('scr-setup');
+    }
+
+    function addPlayerField() {
+        const container = document.getElementById('player-inputs');
+        const count = container.children.length + 1;
+        const row = document.createElement('div');
+        row.className = 'player-row';
+        
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'player-name-field';
+        input.value = 'Spieler ' + count;
+        input.onfocus = function() { this.select(); };
+        
+        row.appendChild(input);
+        container.appendChild(row);
+    }
+
+    function removePlayerField() {
+        const container = document.getElementById('player-inputs');
+        if (container.children.length > 2) container.removeChild(container.lastChild);
+    }
+
+    function confirmPlayersAndStart() {
+        const fields = document.querySelectorAll('.player-name-field');
+        players = [];
+        for (let i = 0; i < fields.length; i++) {
+            let name = fields[i].value.trim() || ('Spieler ' + (i + 1));
+            players.push({ name: name, score: 0 });
+        }
+        activePlayerIndex = 0;
+        startPrioritiesRound();
+    }
+
+    function makeDraggable(card) {
+        card.setAttribute("draggable", "true");
+        card.addEventListener('dragstart', function() { this.classList.add('dragging'); dragElement = this; });
+        card.addEventListener('dragover', function(e) { e.preventDefault(); this.classList.add('over'); });
+        card.addEventListener('dragleave', function() { this.classList.remove('over'); });
+        card.addEventListener('drop', function(e) {
+            e.stopPropagation();
+            if (dragElement !== this) { 
+                let tmp = this.innerHTML; this.innerHTML = dragElement.innerHTML; dragElement.innerHTML = tmp; 
+            }
+        });
+        card.addEventListener('dragend', function() { 
+            const cards = document.querySelectorAll('.card-item');
+            for (let i = 0; i < cards.length; i++) {
+                cards[i].classList.remove('over', 'dragging');
+            }
+        });
+        
+        card.addEventListener('touchstart', function() { this.classList.add('dragging'); dragElement = this; }, {passive: true});
+        card.addEventListener('touchmove', function(e) {
+            if (e.cancelable) e.preventDefault(); 
+            let t = e.touches[0];
+            let target = document.elementFromPoint(t.clientX, t.clientY);
+            const cards = document.querySelectorAll('.card-item');
+            for (let i = 0; i < cards.length; i++) {
+                cards[i].classList.remove('over');
+            }
+            if (target) {
+                let zone = target.closest('.card-item');
+                if (zone && zone !== this) zone.classList.add('over');
+            }
+        }, {passive: false});
+        card.addEventListener('touchend', function(e) {
+            this.classList.remove('dragging');
+            let t = e.changedTouches[0];
+            let target = document.elementFromPoint(t.clientX, t.clientY);
+            if (target) {
+                let zone = target.closest('.card-item');
+                if (zone && zone !== this) {
+                    let tmp = zone.innerHTML; zone.innerHTML = this.innerHTML; this.innerHTML = tmp;
+                }
+            }
+            const cards = document.querySelectorAll('.card-item');
+            for (let i = 0; i < cards.length; i++) {
+                cards[i].classList.remove('over');
+            }
+        });
+    }
+
+    function renderSortableList(containerId, itemsArray) {
+        const container = document.getElementById(containerId);
+        container.innerHTML = "";
+        for (let i = 0; i < itemsArray.length; i++) {
+            const row = document.createElement("div");
+            row.className = "ranking-row";
+            
+            const indicator = document.createElement("div");
+            indicator.className = "num-indicator";
+            indicator.textContent = i + 1;
+            
+            const card = document.createElement("div");
+            card.className = "card-item";
+            
+            const span = document.createElement("span");
+            span.textContent = itemsArray[i];
+            
+            const handle = document.createElement("div");
+            handle.className = "card-drag-handle";
+            handle.appendChild(document.createElement("span"));
+            handle.appendChild(document.createElement("span"));
+            handle.appendChild(document.createElement("span"));
+            
+            card.appendChild(span);
+            card.appendChild(handle);
+            makeDraggable(card);
+            
+            row.appendChild(indicator);
+            row.appendChild(card);
+            container.appendChild(row);
+        }
+    }
+
+    function startPrioritiesRound() {
+        let currentGiver = players[activePlayerIndex].name;
+        document.getElementById('current-giver-name').textContent = currentGiver;
+        document.getElementById('guess-target-name').textContent = currentGiver;
+        roundWords = prioritiesPool.sort(function() { return Math.random() - 0.5; }).slice(0, 5);
+        renderSortableList("box-rank", [].concat(roundWords));
+        switchScreen('scr-rank');
+    }
+
+    function saveSecretRanking() {
+        const spans = document.getElementById("box-rank").querySelectorAll('.card-item span');
+        secretRanking = [];
+        for (let i = 0; i < spans.length; i++) {
+            secretRanking.push(spans[i].textContent);
+        }
+        switchScreen('scr-handover');
+    }
+
+    function startGuessingPhase() {
+        renderSortableList("box-guess", [].concat(roundWords).sort(function() { return Math.random() - 0.5; }));
+        switchScreen('scr-guess');
+    }
+
+    function evaluatePrioritiesRound() {
+        const spans = document.getElementById("box-guess").querySelectorAll('.card-item span');
+        let guessRanking = [];
+        for (let i = 0; i < spans.length; i++) {
+            guessRanking.push(spans[i].textContent);
+        }
+        
+        const container = document.getElementById('box-visual-results');
+        container.innerHTML = "";
+        let hits = 0;
+        latestPointsGained = {};
+
+        for (let i = 0; i < secretRanking.length; i++) {
+            let word = secretRanking[i];
+            let correctPos = i + 1;
+            let guessedPos = guessRanking.indexOf(word) + 1;
+            let isMatch = (correctPos === guessedPos);
+            if (isMatch) hits++;
+            
+            const row = document.createElement('div');
+            row.className = 'res-row' + (isMatch ? ' is-correct' : '');
+            
+            const wSpan = document.createElement('span');
+            wSpan.textContent = word;
+            
+            const divBadges = document.createElement('div');
+            const b1 = document.createElement('span');
+            b1.className = 'badge-pill';
+            b1.textContent = 'Du: ' + correctPos;
+            
+            const b2 = document.createElement('span');
+            b2.className = 'badge-pill' + (isMatch ? ' match' : '');
+            b2.textContent = 'Team: ' + guessedPos;
+            
+            divBadges.appendChild(b1);
+            divBadges.appendChild(b2);
+            row.appendChild(wSpan);
+            row.appendChild(divBadges);
+            container.appendChild(row);
+        }
+        
+        let roundPoints = hits * 2;
+        for (let i = 0; i < players.length; i++) {
+            latestPointsGained[players[i].name] = (i !== activePlayerIndex) ? roundPoints : 0;
+            players[i].score += latestPointsGained[players[i].name];
+        }
+
+        const summary = document.createElement('p');
+        summary.className = 'instruction-text';
+        summary.style.color = 'var(--accent-neon)';
+        summary.style.fontWeight = 'bold';
+        summary.style.marginTop = '10px';
+        summary.textContent = '\u00dcbereinstimmungen: ' + hits + ' von 5!';
+        container.appendChild(summary);
+        
+        activePlayerIndex = (activePlayerIndex + 1) % players.length;
+        openGlobalResultsScreen();
+    }
+
+    function openGlobalResultsScreen() {
+        let sorted = [].concat(players).sort(function(a, b) { return b.score - a.score; });
+        const tbody = document.getElementById('score-table-body');
+        tbody.innerHTML = '';
+        
+        for (let i = 0; i < sorted.length; i++) {
+            let p = sorted[i];
+            let roundPoints = latestPointsGained[p.name] || 0;
+            
+            const tr = document.createElement('tr');
+            
+            const td1 = document.createElement('td');
+            const str = document.createElement('strong');
+            str.textContent = (i + 1) + '.';
+            td1.appendChild(str);
+            
+            const td2 = document.createElement('td');
+            td2.textContent = p.name;
+            
+            const td3 = document.createElement('td');
+            td3.style.color = 'var(--success)';
+            td3.textContent = '+' + roundPoints;
+            
+            const td4 = document.createElement('td');
+            td4.style.color = 'var(--accent-neon)';
+            td4.style.fontWeight = 'bold';
+            td4.textContent = p.score;
+            
+            tr.appendChild(td1);
+            tr.appendChild(td2);
+            tr.appendChild(td3);
+            tr.appendChild(td4);
+            tbody.appendChild(tr);
+        }
+        switchScreen('scr-global-results');
+    }
+
+    function advanceNextTurn() {
+        startPrioritiesRound();
+    }
+</script>
+</body>
+</html>
